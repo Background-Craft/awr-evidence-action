@@ -1,0 +1,105 @@
+{
+  "spec": "agent-work-record/v0",
+  "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2/work-record",
+  "workspace": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001",
+  "work": {
+    "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2",
+    "title": "Fix the reports date filter"
+  },
+  "agents": [
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/legacy-agent",
+      "name": "Legacy agent",
+      "on_behalf_of": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "client": "hyd699-test"
+    }
+  ],
+  "grants": [
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2/work-record/grants/connection:legacy-agent",
+      "agent": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/legacy-agent",
+      "granted_by": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "actions": [
+        "read",
+        "write"
+      ],
+      "issued_at": "2026-10-14T09:00:00Z"
+    }
+  ],
+  "evidence": [],
+  "signoffs": [
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2/work-record/signoffs/00000000-0000-4000-8000-000000000002",
+      "by": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "decision": "reject",
+      "claim": "done",
+      "evidence": [],
+      "at": "2026-10-14T09:04:00Z",
+      "note": "The filter still drops the last day."
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "at": "2026-10-14T09:00:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "agent.connected",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/legacy-agent"
+    },
+    {
+      "seq": 2,
+      "at": "2026-10-14T09:00:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "grant.issued",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2/work-record/grants/connection:legacy-agent"
+    },
+    {
+      "seq": 3,
+      "at": "2026-10-14T09:01:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/legacy-agent",
+      "type": "work.status_changed",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2",
+      "note": "Created in Backlog"
+    },
+    {
+      "seq": 4,
+      "at": "2026-10-14T09:02:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/legacy-agent",
+      "type": "work.status_changed",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2",
+      "note": "Backlog to In Progress"
+    },
+    {
+      "seq": 5,
+      "at": "2026-10-14T09:03:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/legacy-agent",
+      "type": "work.status_changed",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2",
+      "note": "In Progress to Human Review"
+    },
+    {
+      "seq": 6,
+      "at": "2026-10-14T09:04:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "signoff.recorded",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2/work-record/signoffs/00000000-0000-4000-8000-000000000002"
+    },
+    {
+      "seq": 7,
+      "at": "2026-10-14T09:04:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "work.status_changed",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2",
+      "note": "Human Review to Backlog"
+    }
+  ]
+}

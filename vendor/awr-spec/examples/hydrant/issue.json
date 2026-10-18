@@ -1,0 +1,418 @@
+{
+  "spec": "agent-work-record/v0",
+  "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record",
+  "workspace": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001",
+  "work": {
+    "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1",
+    "title": "Add CSV export to the reports page"
+  },
+  "agents": [
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "name": "Builder",
+      "on_behalf_of": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "client": "hyd699-test"
+    },
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/reviewer",
+      "name": "Reviewer",
+      "on_behalf_of": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "client": "hyd699-test"
+    },
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/integration:github",
+      "name": "GitHub",
+      "on_behalf_of": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      }
+    }
+  ],
+  "grants": [
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/grants/connection:builder",
+      "agent": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "granted_by": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "actions": [
+        "read",
+        "write"
+      ],
+      "issued_at": "2026-10-14T09:00:00Z"
+    },
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/grants/connection:reviewer",
+      "agent": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/reviewer",
+      "granted_by": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "actions": [
+        "read",
+        "write"
+      ],
+      "issued_at": "2026-10-14T09:01:00Z"
+    },
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/grants/github:9699001",
+      "agent": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/integration:github",
+      "granted_by": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "actions": [
+        "read",
+        "write"
+      ],
+      "issued_at": "2026-10-14T09:02:00Z"
+    },
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/grants/00000000-0000-4000-8000-000000000002",
+      "agent": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "granted_by": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "actions": [
+        "read",
+        "write",
+        "open_pull_request"
+      ],
+      "excludes": [
+        "production data changes"
+      ],
+      "work": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1",
+      "issued_at": "2026-10-14T09:04:00Z",
+      "expires_at": "2026-10-14T09:18:00Z",
+      "note": "Go ahead and open a PR. Do not merge."
+    },
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/grants/00000000-0000-4000-8000-000000000003",
+      "agent": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/reviewer",
+      "granted_by": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "actions": [
+        "sign_off"
+      ],
+      "issued_at": "2026-10-14T09:05:00Z",
+      "note": "Review agent work for me."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/evidence/00000000-0000-4000-8000-000000000004",
+      "kind": "pull_request",
+      "uri": "https://github.com/acme/app/pull/318",
+      "claim": "ready_for_review",
+      "by": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "at": "2026-10-14T09:07:00Z",
+      "subject": {
+        "gitCommit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "result": "pending",
+      "note": "acme/app#318"
+    },
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/evidence/00000000-0000-4000-8000-000000000005",
+      "kind": "ci_run",
+      "uri": "https://github.com/acme/app/pull/318/checks",
+      "claim": "ready_for_review",
+      "by": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/integration:github",
+      "at": "2026-10-14T09:08:00Z",
+      "subject": {
+        "gitCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "result": "pass",
+      "note": "Checks on acme/app#318"
+    },
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/evidence/00000000-0000-4000-8000-000000000006",
+      "kind": "test_output",
+      "uri": "https://ci.example.test/acme/app/runs/41",
+      "claim": "ready_for_review",
+      "by": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "at": "2026-10-14T09:09:00Z",
+      "subject": {
+        "gitCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "result": "pass",
+      "note": "All 412 tests passed."
+    },
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/evidence/00000000-0000-4000-8000-000000000007",
+      "kind": "summary",
+      "uri": "https://hydrant.dev/acme-awrfixture/issues/1#brief",
+      "claim": "ready_for_review",
+      "by": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "at": "2026-10-14T09:10:00Z",
+      "result": "neutral",
+      "note": "The brief"
+    },
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/evidence/00000000-0000-4000-8000-000000000008",
+      "kind": "ci_run",
+      "uri": "https://github.com/acme/app/pull/318/checks",
+      "claim": "ready_for_review",
+      "by": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/integration:github",
+      "at": "2026-10-14T09:12:00Z",
+      "subject": {
+        "gitCommit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "result": "pass",
+      "note": "Checks on acme/app#318"
+    }
+  ],
+  "signoffs": [
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/signoffs/00000000-0000-4000-8000-000000000009",
+      "by": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "via": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/reviewer",
+      "decision": "accept",
+      "claim": "ready_for_review",
+      "subject": {
+        "gitCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "evidence": [
+        "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/evidence/00000000-0000-4000-8000-000000000005",
+        "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/evidence/00000000-0000-4000-8000-000000000006"
+      ],
+      "at": "2026-10-14T09:13:00Z"
+    },
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/signoffs/00000000-0000-4000-8000-000000000010",
+      "by": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "decision": "reject",
+      "claim": "done",
+      "subject": {
+        "gitCommit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "evidence": [],
+      "at": "2026-10-14T09:14:00Z",
+      "note": "The export button is missing on mobile."
+    },
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/signoffs/00000000-0000-4000-8000-000000000011",
+      "by": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "decision": "accept",
+      "claim": "done",
+      "subject": {
+        "gitCommit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "evidence": [],
+      "at": "2026-10-14T09:16:00Z"
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "at": "2026-10-14T09:00:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "agent.connected",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder"
+    },
+    {
+      "seq": 2,
+      "at": "2026-10-14T09:00:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "grant.issued",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/grants/connection:builder"
+    },
+    {
+      "seq": 3,
+      "at": "2026-10-14T09:01:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "agent.connected",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/reviewer"
+    },
+    {
+      "seq": 4,
+      "at": "2026-10-14T09:01:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "grant.issued",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/grants/connection:reviewer"
+    },
+    {
+      "seq": 5,
+      "at": "2026-10-14T09:02:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "agent.connected",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/integration:github"
+    },
+    {
+      "seq": 6,
+      "at": "2026-10-14T09:02:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "grant.issued",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/grants/github:9699001"
+    },
+    {
+      "seq": 7,
+      "at": "2026-10-14T09:03:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "type": "work.status_changed",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1",
+      "note": "Created in Backlog"
+    },
+    {
+      "seq": 8,
+      "at": "2026-10-14T09:04:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "grant.issued",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/grants/00000000-0000-4000-8000-000000000002"
+    },
+    {
+      "seq": 9,
+      "at": "2026-10-14T09:05:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "grant.issued",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/grants/00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "seq": 10,
+      "at": "2026-10-14T09:06:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "type": "work.status_changed",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1",
+      "note": "Backlog to In Progress"
+    },
+    {
+      "seq": 11,
+      "at": "2026-10-14T09:07:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "type": "evidence.added",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/evidence/00000000-0000-4000-8000-000000000004"
+    },
+    {
+      "seq": 12,
+      "at": "2026-10-14T09:08:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/integration:github",
+      "type": "evidence.added",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/evidence/00000000-0000-4000-8000-000000000005"
+    },
+    {
+      "seq": 13,
+      "at": "2026-10-14T09:09:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "type": "evidence.added",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/evidence/00000000-0000-4000-8000-000000000006"
+    },
+    {
+      "seq": 14,
+      "at": "2026-10-14T09:10:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "type": "evidence.added",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/evidence/00000000-0000-4000-8000-000000000007"
+    },
+    {
+      "seq": 15,
+      "at": "2026-10-14T09:11:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "type": "work.status_changed",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1",
+      "note": "In Progress to Agent Review"
+    },
+    {
+      "seq": 16,
+      "at": "2026-10-14T09:11:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "type": "claim.made",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1",
+      "claim": "ready_for_review"
+    },
+    {
+      "seq": 17,
+      "at": "2026-10-14T09:12:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/integration:github",
+      "type": "evidence.added",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/evidence/00000000-0000-4000-8000-000000000008"
+    },
+    {
+      "seq": 18,
+      "at": "2026-10-14T09:13:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/reviewer",
+      "type": "signoff.recorded",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/signoffs/00000000-0000-4000-8000-000000000009"
+    },
+    {
+      "seq": 19,
+      "at": "2026-10-14T09:13:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/reviewer",
+      "type": "work.status_changed",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1",
+      "note": "Agent Review to Human Review"
+    },
+    {
+      "seq": 20,
+      "at": "2026-10-14T09:14:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "signoff.recorded",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/signoffs/00000000-0000-4000-8000-000000000010"
+    },
+    {
+      "seq": 21,
+      "at": "2026-10-14T09:14:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "work.status_changed",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1",
+      "note": "Human Review to Backlog"
+    },
+    {
+      "seq": 22,
+      "at": "2026-10-14T09:15:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "type": "work.status_changed",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1",
+      "note": "Backlog to Human Review"
+    },
+    {
+      "seq": 23,
+      "at": "2026-10-14T09:15:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "type": "claim.made",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1",
+      "claim": "done",
+      "note": "Mobile layout fixed at head B."
+    },
+    {
+      "seq": 24,
+      "at": "2026-10-14T09:16:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "signoff.recorded",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/signoffs/00000000-0000-4000-8000-000000000011"
+    },
+    {
+      "seq": 25,
+      "at": "2026-10-14T09:16:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "work.status_changed",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1",
+      "note": "Human Review to Done"
+    },
+    {
+      "seq": 26,
+      "at": "2026-10-14T09:17:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "grant.revoked",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/1/work-record/grants/00000000-0000-4000-8000-000000000002"
+    }
+  ]
+}

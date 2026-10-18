@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentworkrecord.org/schema/v0.json",
+  "title": "Agent Work Record (AWR) v0 and v0.1",
+  "description": "A record (one per unit of work) or a fragment (one evidence item or one event, sent by a system that does not own the work). A record says agent-work-record/v0 or, when it uses a v0.1 addition, agent-work-record/v0.1; fragments stay v0. Uses only the keyword subset that docs/spec/validate.mjs enforces.",
+  "anyOf": [
+    { "$ref": "#/$defs/record" },
+    { "$ref": "#/$defs/evidence_fragment" },
+    { "$ref": "#/$defs/event_fragment" }
+  ],
+  "$defs": {
+    "record": {
+      "type": "object",
+      "required": ["spec", "id", "workspace", "work", "agents", "grants", "evidence", "signoffs", "events"],
+      "additionalProperties": false,
+      "properties": {
+        "spec": { "enum": ["agent-work-record/v0", "agent-work-record/v0.1"] },
+        "id": { "$ref": "#/$defs/uri" },
+        "workspace": { "$ref": "#/$defs/uri" },
+        "work": { "$ref": "#/$defs/work" },
+        "agents": { "type": "array", "items": { "$ref": "#/$defs/agent" } },
+        "grants": { "type": "array", "items": { "$ref": "#/$defs/grant" } },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } },
+        "signoffs": { "type": "array", "items": { "$ref": "#/$defs/signoff" } },
+        "events": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/event" } },
+        "people": { "type": "array", "items": { "$ref": "#/$defs/listed_person" } }
+      },
+      "if": { "properties": { "spec": { "const": "agent-work-record/v0" } } },
+      "then": { "properties": { "signoffs": { "items": { "$ref": "#/$defs/rejection_reason" } } } }
+    },
+    "evidence_fragment": {
+      "type": "object",
+      "required": ["spec", "workspace", "work", "evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "spec": { "const": "agent-work-record/v0" },
+        "workspace": { "$ref": "#/$defs/uri" },
+        "work": { "$ref": "#/$defs/uri" },
+        "evidence": { "$ref": "#/$defs/evidence" }
+      }
+    },
+    "event_fragment": {
+      "type": "object",
+      "required": ["spec", "workspace", "work", "event"],
+      "additionalProperties": false,
+      "properties": {
+        "spec": { "const": "agent-work-record/v0" },
+        "workspace": { "$ref": "#/$defs/uri" },
+        "work": { "$ref": "#/$defs/uri" },
+        "event": { "$ref": "#/$defs/fragment_event" }
+      }
+    },
+    "uri": { "type": "string", "format": "uri" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "text": { "type": "string", "minLength": 1 },
+    "digest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "gitCommit": { "type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$" }
+      },
+      "anyOf": [{ "required": ["sha256"] }, { "required": ["gitCommit"] }]
+    },
+    "claim": {
+      "anyOf": [
+        { "enum": ["ready_for_review", "done", "released"] },
+        { "$ref": "#/$defs/uri" }
+      ]
+    },
+    "action": {
+      "anyOf": [
+        { "enum": ["read", "write", "open_pull_request", "merge", "release", "sign_off"] },
+        { "$ref": "#/$defs/uri" }
+      ]
+    },
+    "event_type": { "enum": ["agent.connected", "agent.revoked", "grant.issued", "grant.revoked", "work.status_changed", "evidence.added", "claim.made", "signoff.recorded"] },
+    "person": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/uri" },
+        "name": { "$ref": "#/$defs/text" }
+      }
+    },
+    "listed_person": {
+      "description": "v0.1: a person the record names only because they acted, in work.status_changed and claim.made events.",
+      "type": "object",
+      "required": ["id", "role"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/uri" },
+        "name": { "$ref": "#/$defs/text" },
+        "role": { "enum": ["actor"] }
+      }
+    },
+    "work": {
+      "type": "object",
+      "required": ["id", "title"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/uri" },
+        "title": { "$ref": "#/$defs/text" }
+      }
+    },
+    "agent": {
+      "type": "object",
+      "required": ["id", "name", "on_behalf_of"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/uri" },
+        "name": { "$ref": "#/$defs/text" },
+        "on_behalf_of": { "$ref": "#/$defs/person" },
+        "client": { "$ref": "#/$defs/text" },
+        "model": { "$ref": "#/$defs/text" }
+      }
+    },
+    "grant": {
+      "type": "object",
+      "required": ["id", "agent", "granted_by", "actions", "issued_at"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/uri" },
+        "agent": { "$ref": "#/$defs/uri" },
+        "granted_by": { "$ref": "#/$defs/person" },
+        "actions": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/action" } },
+        "excludes": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+        "work": { "$ref": "#/$defs/uri" },
+        "issued_at": { "$ref": "#/$defs/timestamp" },
+        "expires_at": { "$ref": "#/$defs/timestamp" },
+        "note": { "$ref": "#/$defs/text" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["id", "kind", "uri", "claim", "by", "at"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/uri" },
+        "kind": { "enum": ["pull_request", "ci_run", "test_output", "screenshot", "review", "summary", "attestation", "other"] },
+        "uri": { "$ref": "#/$defs/uri" },
+        "claim": { "$ref": "#/$defs/claim" },
+        "by": { "$ref": "#/$defs/uri" },
+        "at": { "$ref": "#/$defs/timestamp" },
+        "subject": { "$ref": "#/$defs/digest" },
+        "result": { "enum": ["pass", "fail", "pending", "neutral"] },
+        "digest": { "$ref": "#/$defs/digest" },
+        "note": { "$ref": "#/$defs/text" }
+      }
+    },
+    "signoff": {
+      "type": "object",
+      "required": ["id", "by", "decision", "claim", "evidence", "at"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/uri" },
+        "by": { "$ref": "#/$defs/person" },
+        "via": { "$ref": "#/$defs/uri" },
+        "decision": { "enum": ["accept", "reject", "abstain"] },
+        "claim": { "$ref": "#/$defs/claim" },
+        "subject": { "$ref": "#/$defs/digest" },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/uri" } },
+        "at": { "$ref": "#/$defs/timestamp" },
+        "note": { "$ref": "#/$defs/text" },
+        "sign_off_grant": { "const": false },
+        "unlisted_evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence_snapshot" } }
+      }
+    },
+    "rejection_reason": {
+      "description": "What v0 adds to a sign-off: a rejection carries its reason. v0.1 leaves the reason optional.",
+      "if": { "properties": { "decision": { "const": "reject" } } },
+      "then": { "required": ["note"] }
+    },
+    "evidence_snapshot": {
+      "description": "v0.1: evidence a sign-off cited that is no longer listed, as it stood when the person decided.",
+      "type": "object",
+      "required": ["id", "kind", "uri", "at"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/uri" },
+        "kind": { "enum": ["pull_request", "ci_run", "test_output", "screenshot", "review", "summary", "attestation", "other"] },
+        "uri": { "$ref": "#/$defs/uri" },
+        "at": { "$ref": "#/$defs/timestamp" },
+        "subject": { "$ref": "#/$defs/digest" },
+        "result": { "enum": ["pass", "fail", "pending", "neutral"] },
+        "note": { "$ref": "#/$defs/text" }
+      }
+    },
+    "event": {
+      "type": "object",
+      "required": ["seq", "at", "actor", "type", "ref"],
+      "additionalProperties": false,
+      "properties": {
+        "seq": { "type": "integer", "minimum": 1 },
+        "at": { "$ref": "#/$defs/timestamp" },
+        "actor": { "$ref": "#/$defs/uri" },
+        "type": { "$ref": "#/$defs/event_type" },
+        "ref": { "$ref": "#/$defs/uri" },
+        "claim": { "$ref": "#/$defs/claim" },
+        "note": { "$ref": "#/$defs/text" }
+      },
+      "if": { "properties": { "type": { "const": "claim.made" } } },
+      "then": { "required": ["claim"] }
+    },
+    "fragment_event": {
+      "description": "An event as a fragment carries it: no seq or at, which the tracker assigns when it merges, and only the two types a system outside the tracker may send.",
+      "type": "object",
+      "required": ["actor", "type", "ref"],
+      "additionalProperties": false,
+      "properties": {
+        "actor": { "$ref": "#/$defs/uri" },
+        "type": { "enum": ["work.status_changed", "claim.made"] },
+        "ref": { "$ref": "#/$defs/uri" },
+        "claim": { "$ref": "#/$defs/claim" },
+        "note": { "$ref": "#/$defs/text" }
+      },
+      "if": { "properties": { "type": { "const": "claim.made" } } },
+      "then": { "required": ["claim"] }
+    }
+  }
+}

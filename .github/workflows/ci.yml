@@ -1,0 +1,107 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # A throwaway value for the mock receiver, not a secret. The action masks it in the log all the same.
+      MOCK_TOKEN: ci-mock-receiver-token-not-a-secret
+      EXPECTED_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Unit tests
+        run: node --test 'test/*.test.mjs'
+
+      - name: Vendored validator on the vendored examples
+        run: node vendor/awr-spec/validate.mjs
+
+      - name: Vendored copy matches its pinned checksums
+        run: cd vendor/awr-spec && sha256sum -c ../awr-spec.sha256
+
+      # File mode, with no result input, so the action takes the job status from its default.
+      - name: Action in file mode
+        id: file
+        uses: ./
+        with:
+          workspace: https://tracker.example.com/w/acme
+          work: https://tracker.example.com/w/acme/issues/42
+          by: https://tracker.example.com/w/acme/agents/ci
+          note: Self-run in file mode.
+          output-file: ${{ runner.temp }}/fragment-file-mode.json
+
+      - name: Check the file-mode fragment
+        env:
+          FILE: ${{ steps.file.outputs.fragment-file }}
+          EVIDENCE_ID: ${{ steps.file.outputs.evidence-id }}
+          RUN_ATTEMPT_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+        run: |
+          node test/validate-fragment.mjs "$FILE"
+          node -e '
+            const f = JSON.parse(require("fs").readFileSync(process.env.FILE, "utf8"))
+            const want = { id: process.env.RUN_ATTEMPT_URL, result: "pass", gitCommit: process.env.EXPECTED_SHA }
+            const got = { id: f.evidence.id, result: f.evidence.result, gitCommit: f.evidence.subject?.gitCommit }
+            console.log(JSON.stringify(got))
+            if (JSON.stringify(got) !== JSON.stringify(want)) { console.error("expected " + JSON.stringify(want)); process.exit(1) }
+            if (process.env.EVIDENCE_ID !== want.id) { console.error("evidence-id output is " + process.env.EVIDENCE_ID); process.exit(1) }
+          '
+
+      - name: Start the mock receiver
+        run: |
+          node test/mock-receiver.mjs serve 8787 > "$RUNNER_TEMP/mock.log" 2>&1 &
+          for i in $(seq 1 50); do curl -sf http://127.0.0.1:8787/report > /dev/null && exit 0; sleep 0.1; done
+          cat "$RUNNER_TEMP/mock.log"; exit 1
+
+      - name: Action in post mode, bare fragment
+        id: bare
+        uses: ./
+        with:
+          workspace: https://tracker.example.com/w/acme
+          work: https://tracker.example.com/w/acme/issues/42
+          by: https://tracker.example.com/w/acme/agents/ci
+          result: success
+          endpoint: http://127.0.0.1:8787/bare
+          token: ${{ env.MOCK_TOKEN }}
+          output-file: ${{ runner.temp }}/fragment-bare.json
+
+      - name: Action in post mode, hydrant body
+        id: hydrant
+        uses: ./
+        with:
+          workspace: https://tracker.example.com/w/acme
+          work: https://tracker.example.com/w/acme/issues/42
+          by: https://tracker.example.com/w/acme/agents/ci
+          result: success
+          body: hydrant
+          endpoint: http://127.0.0.1:8787/hydrant
+          token: ${{ env.MOCK_TOKEN }}
+
+      - name: Check post mode
+        env:
+          BARE_STATUS: ${{ steps.bare.outputs.status }}
+          HYDRANT_STATUS: ${{ steps.hydrant.outputs.status }}
+        run: |
+          test "$BARE_STATUS" = 200 && test "$HYDRANT_STATUS" = 200
+          node test/mock-receiver.mjs check 8787
+          node test/validate-fragment.mjs "$RUNNER_TEMP/fragment-bare.json"
+
+      - name: Upload the fragments
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: awr-fragments
+          path: |
+            ${{ runner.temp }}/fragment-file-mode.json
+            ${{ runner.temp }}/fragment-bare.json
+          if-no-files-found: error

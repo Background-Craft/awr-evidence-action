@@ -1,0 +1,260 @@
+{
+  "spec": "agent-work-record/v0",
+  "id": "urn:uuid:6f1d2c4e-8a3b-4c5d-9e7f-0a1b2c3d4e5f",
+  "workspace": "https://tracker.example.com/w/acme",
+  "work": {
+    "id": "https://tracker.example.com/w/acme/issues/42",
+    "title": "Add CSV export to the reports page"
+  },
+  "agents": [
+    {
+      "id": "https://tracker.example.com/w/acme/agents/builder",
+      "name": "Builder",
+      "on_behalf_of": {
+        "id": "https://tracker.example.com/w/acme/people/dana",
+        "name": "Dana Reyes"
+      },
+      "client": "claude-code",
+      "model": "claude-opus-5-5"
+    },
+    {
+      "id": "https://tracker.example.com/w/acme/agents/reviewer",
+      "name": "Reviewer",
+      "on_behalf_of": {
+        "id": "https://tracker.example.com/w/acme/people/dana",
+        "name": "Dana Reyes"
+      },
+      "client": "codex"
+    }
+  ],
+  "grants": [
+    {
+      "id": "urn:uuid:0b6c9f1a-2d3e-4f50-8a61-7b8c9d0e1f20",
+      "agent": "https://tracker.example.com/w/acme/agents/builder",
+      "granted_by": {
+        "id": "https://tracker.example.com/w/acme/people/dana",
+        "name": "Dana Reyes"
+      },
+      "actions": [
+        "read",
+        "write",
+        "open_pull_request"
+      ],
+      "excludes": [
+        "production data changes",
+        "new paid infrastructure"
+      ],
+      "work": "https://tracker.example.com/w/acme/issues/42",
+      "issued_at": "2026-10-14T09:01:00Z",
+      "expires_at": "2026-10-15T09:01:00Z",
+      "note": "Go ahead on #42 and open a PR. Do not merge."
+    },
+    {
+      "id": "urn:uuid:1c7d0a2b-3e4f-4061-9b72-8c9d0e1f2031",
+      "agent": "https://tracker.example.com/w/acme/agents/reviewer",
+      "granted_by": {
+        "id": "https://tracker.example.com/w/acme/people/dana",
+        "name": "Dana Reyes"
+      },
+      "actions": [
+        "read",
+        "write"
+      ],
+      "work": "https://tracker.example.com/w/acme/issues/42",
+      "issued_at": "2026-10-14T09:05:00Z",
+      "expires_at": "2026-02-30T09:05:00Z"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "urn:uuid:2d8e1b3c-4f50-4172-8c83-9d0e1f203142",
+      "kind": "pull_request",
+      "uri": "https://github.com/acme/app/pull/318",
+      "claim": "ready_for_review",
+      "by": "https://tracker.example.com/w/acme/agents/builder",
+      "at": "2026-10-14T11:00:00Z",
+      "note": "Head 3f2a9c1."
+    },
+    {
+      "id": "urn:uuid:3e9f2c4d-5061-4283-9d94-0e1f20314253",
+      "kind": "ci_run",
+      "uri": "https://github.com/acme/app/actions/runs/123456789",
+      "claim": "ready_for_review",
+      "by": "https://tracker.example.com/w/acme/agents/builder",
+      "at": "2026-10-14T11:20:00Z",
+      "subject": {
+        "gitCommit": "3f2a9c1435b35d5f7909a03b9e61584db41b2143"
+      },
+      "result": "pass",
+      "note": "All checks at head 3f2a9c1."
+    },
+    {
+      "id": "urn:uuid:4fa03d5e-6172-4394-8ea5-1f2031425364",
+      "kind": "screenshot",
+      "uri": "https://tracker.example.com/w/acme/issues/42/attachments/9b1e7c22",
+      "claim": "done",
+      "by": "https://tracker.example.com/w/acme/agents/builder",
+      "at": "2026-10-14T11:25:00Z",
+      "digest": {
+        "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+      },
+      "note": "Export button on the reports page, light theme."
+    },
+    {
+      "id": "urn:uuid:5ab14e6f-7283-44a5-9fb6-203142536475",
+      "kind": "review",
+      "uri": "https://github.com/acme/app/pull/318#pullrequestreview-2201",
+      "claim": "done",
+      "by": "https://tracker.example.com/w/acme/agents/reviewer",
+      "at": "2026-10-14T12:00:00Z",
+      "subject": {
+        "gitCommit": "3f2a9c1435b35d5f7909a03b9e61584db41b2143"
+      },
+      "result": "pass",
+      "note": "Independent review of head 3f2a9c1. No blocking findings."
+    },
+    {
+      "id": "urn:uuid:6bc25f70-8394-45b6-80c7-314253647586",
+      "kind": "summary",
+      "uri": "https://tracker.example.com/w/acme/issues/42#brief",
+      "claim": "done",
+      "by": "https://tracker.example.com/w/acme/agents/builder",
+      "at": "2026-10-14T12:10:00Z",
+      "note": "What changed: an Export CSV button on Reports. How to check: open Reports, export, open the file. Not done: Excel format."
+    }
+  ],
+  "signoffs": [
+    {
+      "id": "urn:uuid:7cd36081-94a5-46c7-91d8-425364758697",
+      "by": {
+        "id": "https://tracker.example.com/w/acme/people/dana",
+        "name": "Dana Reyes"
+      },
+      "decision": "accept",
+      "claim": "done",
+      "subject": {
+        "gitCommit": "3f2a9c1435b35d5f7909a03b9e61584db41b2143"
+      },
+      "evidence": [
+        "urn:uuid:3e9f2c4d-5061-4283-9d94-0e1f20314253",
+        "urn:uuid:4fa03d5e-6172-4394-8ea5-1f2031425364",
+        "urn:uuid:5ab14e6f-7283-44a5-9fb6-203142536475",
+        "urn:uuid:6bc25f70-8394-45b6-80c7-314253647586"
+      ],
+      "at": "2026-10-14T15:00:00Z",
+      "note": "Exported a real report on staging. Looks right."
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "at": "2026-10-14T09:00:00Z",
+      "actor": "https://tracker.example.com/w/acme/people/dana",
+      "type": "agent.connected",
+      "ref": "https://tracker.example.com/w/acme/agents/builder"
+    },
+    {
+      "seq": 2,
+      "at": "2026-10-14T09:01:00Z",
+      "actor": "https://tracker.example.com/w/acme/people/dana",
+      "type": "grant.issued",
+      "ref": "urn:uuid:0b6c9f1a-2d3e-4f50-8a61-7b8c9d0e1f20"
+    },
+    {
+      "seq": 3,
+      "at": "2026-10-14T09:04:00Z",
+      "actor": "https://tracker.example.com/w/acme/people/dana",
+      "type": "agent.connected",
+      "ref": "https://tracker.example.com/w/acme/agents/reviewer"
+    },
+    {
+      "seq": 4,
+      "at": "2026-10-14T09:05:00Z",
+      "actor": "https://tracker.example.com/w/acme/people/dana",
+      "type": "grant.issued",
+      "ref": "urn:uuid:1c7d0a2b-3e4f-4061-9b72-8c9d0e1f2031"
+    },
+    {
+      "seq": 5,
+      "at": "2026-10-14T09:10:00Z",
+      "actor": "https://tracker.example.com/w/acme/agents/builder",
+      "type": "work.status_changed",
+      "ref": "https://tracker.example.com/w/acme/issues/42",
+      "note": "Ready to In Progress"
+    },
+    {
+      "seq": 6,
+      "at": "2026-10-14T11:00:00Z",
+      "actor": "https://tracker.example.com/w/acme/agents/builder",
+      "type": "evidence.added",
+      "ref": "urn:uuid:2d8e1b3c-4f50-4172-8c83-9d0e1f203142"
+    },
+    {
+      "seq": 7,
+      "at": "2026-10-14T11:20:00Z",
+      "actor": "https://tracker.example.com/w/acme/agents/builder",
+      "type": "evidence.added",
+      "ref": "urn:uuid:3e9f2c4d-5061-4283-9d94-0e1f20314253"
+    },
+    {
+      "seq": 8,
+      "at": "2026-10-14T11:25:00Z",
+      "actor": "https://tracker.example.com/w/acme/agents/builder",
+      "type": "evidence.added",
+      "ref": "urn:uuid:4fa03d5e-6172-4394-8ea5-1f2031425364"
+    },
+    {
+      "seq": 9,
+      "at": "2026-10-14T11:30:00Z",
+      "actor": "https://tracker.example.com/w/acme/agents/builder",
+      "type": "claim.made",
+      "ref": "https://tracker.example.com/w/acme/issues/42",
+      "claim": "ready_for_review"
+    },
+    {
+      "seq": 10,
+      "at": "2026-10-14T12:00:00Z",
+      "actor": "https://tracker.example.com/w/acme/agents/reviewer",
+      "type": "evidence.added",
+      "ref": "urn:uuid:5ab14e6f-7283-44a5-9fb6-203142536475"
+    },
+    {
+      "seq": 11,
+      "at": "2026-10-14T12:10:00Z",
+      "actor": "https://tracker.example.com/w/acme/agents/builder",
+      "type": "evidence.added",
+      "ref": "urn:uuid:6bc25f70-8394-45b6-80c7-314253647586"
+    },
+    {
+      "seq": 12,
+      "at": "2026-10-14T12:15:00Z",
+      "actor": "https://tracker.example.com/w/acme/agents/builder",
+      "type": "claim.made",
+      "ref": "https://tracker.example.com/w/acme/issues/42",
+      "claim": "done"
+    },
+    {
+      "seq": 13,
+      "at": "2026-10-14T15:00:00Z",
+      "actor": "https://tracker.example.com/w/acme/people/dana",
+      "type": "signoff.recorded",
+      "ref": "urn:uuid:7cd36081-94a5-46c7-91d8-425364758697"
+    },
+    {
+      "seq": 14,
+      "at": "2026-10-14T15:00:00Z",
+      "actor": "https://tracker.example.com/w/acme/people/dana",
+      "type": "work.status_changed",
+      "ref": "https://tracker.example.com/w/acme/issues/42",
+      "note": "Human Review to Accepted"
+    },
+    {
+      "seq": 15,
+      "at": "2026-10-14T15:05:00Z",
+      "actor": "https://tracker.example.com/w/acme/people/dana",
+      "type": "grant.revoked",
+      "ref": "urn:uuid:0b6c9f1a-2d3e-4f50-8a61-7b8c9d0e1f20",
+      "note": "Work accepted."
+    }
+  ]
+}

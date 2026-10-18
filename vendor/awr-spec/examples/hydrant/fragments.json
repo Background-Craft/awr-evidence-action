@@ -1,0 +1,99 @@
+{
+  "spec": "agent-work-record/v0",
+  "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2/work-record",
+  "workspace": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001",
+  "work": {
+    "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2",
+    "title": "Another issue"
+  },
+  "agents": [
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "name": "Builder",
+      "on_behalf_of": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "client": "hyd699-fragments"
+    }
+  ],
+  "grants": [
+    {
+      "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2/work-record/grants/connection:builder",
+      "agent": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "granted_by": {
+        "id": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+        "name": "Dana Reyes"
+      },
+      "actions": [
+        "read",
+        "write"
+      ],
+      "issued_at": "2026-10-14T09:00:00Z"
+    }
+  ],
+  "evidence": [
+    {
+      "at": "2026-10-14T09:01:00Z",
+      "by": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "id": "https://ci.example.test/acme/app/runs/1",
+      "uri": "https://ci.example.test/acme/app/runs/1",
+      "kind": "ci_run",
+      "note": "Nightly browser suite.",
+      "claim": "ready_for_review",
+      "result": "pass",
+      "subject": {
+        "gitCommit": "cccccccccccccccccccccccccccccccccccccccc"
+      }
+    }
+  ],
+  "signoffs": [],
+  "events": [
+    {
+      "seq": 1,
+      "at": "2026-10-14T09:00:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "agent.connected",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder"
+    },
+    {
+      "seq": 2,
+      "at": "2026-10-14T09:00:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/people/dana",
+      "type": "grant.issued",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2/work-record/grants/connection:builder"
+    },
+    {
+      "seq": 3,
+      "at": "2026-10-14T09:02:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "type": "work.status_changed",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2",
+      "note": "Created in Backlog"
+    },
+    {
+      "seq": 4,
+      "at": "2026-10-14T09:03:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "type": "evidence.added",
+      "ref": "https://ci.example.test/acme/app/runs/1"
+    },
+    {
+      "seq": 5,
+      "at": "2026-10-14T09:04:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "type": "work.status_changed",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2",
+      "note": "Backlog to Agent Review"
+    },
+    {
+      "seq": 6,
+      "at": "2026-10-14T09:04:00Z",
+      "actor": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/agents/builder",
+      "type": "claim.made",
+      "ref": "https://hydrant.dev/w/00000000-0000-4000-8000-000000000001/issues/2",
+      "claim": "ready_for_review",
+      "note": "Backlog to Agent Review"
+    }
+  ]
+}
