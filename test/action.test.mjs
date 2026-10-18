@@ -6,7 +6,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { bodyFor, buildFragment, fragmentErrors, headCommit, mapResult, requestIdFor, retryDelaySeconds, runIds, send } from '../index.mjs'
+import { bodyFor, buildFragment, fragmentErrors, headCommit, mapResult, requestIdFor, requestIdOf, retryDelaySeconds, runIds, send } from '../index.mjs'
 import { receiver } from './mock-receiver.mjs'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
@@ -106,19 +106,23 @@ test('the vendored validator accepts the fragment the action writes', async () =
   assert.match(validated.stdout, /ok {4}examples\/fragments\/zz-action-0-fragment\.json is valid/)
 })
 
-test('requestId is a deterministic UUID v5 of the evidence id', () => {
+test('requestId is a deterministic UUID v5 of the work item and the evidence id', () => {
   // RFC 9562 test vector: v5 of www.example.com in the DNS namespace.
   assert.equal(requestIdFor('www.example.com', '6ba7b810-9dad-11d1-80b4-00c04fd430c8'), '2ed6657d-e927-568b-95e1-2665a8aea6a2')
-  const first = runIds(github()).id
-  assert.equal(requestIdFor(first), requestIdFor(first))
-  assert.match(requestIdFor(first), /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
-  assert.notEqual(requestIdFor(runIds(github({ GITHUB_RUN_ATTEMPT: '3' })).id), requestIdFor(first))
+  const fragment = buildFragment(github())
+  assert.equal(requestIdOf(fragment), requestIdFor(`${fragment.work}\n${fragment.evidence.id}`))
+  assert.equal(requestIdOf(fragment), requestIdOf(buildFragment(github())), 'the same work and attempt give the same id')
+  assert.match(requestIdOf(fragment), /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+  assert.notEqual(requestIdOf(buildFragment(github({ GITHUB_RUN_ATTEMPT: '3' }))), requestIdOf(fragment), 'another attempt')
+  const otherWork = buildFragment(github({ INPUT_WORK: 'https://tracker.example.com/w/acme/issues/43' }))
+  assert.equal(otherWork.evidence.id, fragment.evidence.id)
+  assert.notEqual(requestIdOf(otherWork), requestIdOf(fragment), 'the same attempt sent to another work item')
 })
 
 test('both body shapes', () => {
   const fragment = buildFragment(github())
   assert.equal(bodyFor('fragment', fragment), fragment)
-  assert.deepEqual(bodyFor('hydrant', fragment), { requestId: requestIdFor(fragment.evidence.id), fragment })
+  assert.deepEqual(bodyFor('hydrant', fragment), { requestId: requestIdOf(fragment), fragment })
   assert.throws(() => bodyFor('envelope', fragment), /body "envelope"/)
 })
 
@@ -181,6 +185,40 @@ test('the token never appears in stdout or stderr, even when the tracker echoes 
   } finally { await server.close() }
 })
 
+// A tracker answers once (429 or 503) and then 200, with the bodies given.
+async function twice(first, firstBody, secondBody) {
+  let calls = 0
+  return serve((req, res) => { req.resume(); req.on('end', () => {
+    const body = calls++ === 0 ? firstBody(req) : secondBody(req)
+    res.writeHead(calls === 1 ? first : 200, { 'Content-Type': 'application/json', ...(first === 429 ? { 'Retry-After': '0' } : {}) })
+    res.end(body)
+  }) })
+}
+
+test('tracker text cannot inject workflow commands or lines into the log', async () => {
+  const server = await twice(429, () => JSON.stringify({ error: 'Slow down.\n::error::injected by the tracker' }), () => 'ok\n::error::injected by the tracker\n::set-output name=status::999')
+  try {
+    const result = await run(github({ INPUT_ENDPOINT: server.url }))
+    assert.equal(result.code, 0, result.stdout)
+    assert.match(result.stdout, /Send failed with 429: Slow down\.%0A::error::injected by the tracker; retrying once in 0s\./)
+    assert.match(result.stdout, /^Response: ok%0A::error::injected by the tracker%0A::set-output name=status::999$/m)
+    assert.equal(result.stdout.split('\n').some(line => line.startsWith('::') && !line.startsWith('::add-mask::')), false, result.stdout)
+  } finally { await server.close() }
+})
+
+test('a token the tracker echoes in a 503 and then in a 200 body is never printed', async () => {
+  const echo = req => JSON.stringify({ error: `Saw ${req.headers.authorization}` })
+  const server = await twice(503, echo, echo)
+  try {
+    const result = await run(github({ INPUT_ENDPOINT: server.url, INPUT_TOKEN: TOKEN }))
+    assert.equal(result.code, 0, result.stdout)
+    assert.match(result.stdout, /Send failed with 503: Saw Bearer \*\*\*; retrying once in 2s\./)
+    assert.match(result.stdout, /^Response: \{"error":"Saw Bearer \*\*\*"\}$/m)
+    assert.equal(withoutMask(result.stdout).includes(TOKEN), false, result.stdout)
+    assert.equal(result.stderr.includes(TOKEN), false)
+  } finally { await server.close() }
+})
+
 test('one retry on 5xx and on a network error, then a clear failure', async () => {
   const fragment = buildFragment(github())
   const waits = []
@@ -221,20 +259,13 @@ test('plain http is refused except for localhost', async () => {
   assert.match(result.stdout, /endpoint must use https/)
 })
 
-test('file mode writes the fragment, and a rerun of the step in the same attempt resends it unchanged', async () => {
+test('file mode writes the fragment', async () => {
   const file = join(temp(), 'fragment.json')
-  const first = await run(github({ 'INPUT_OUTPUT-FILE': file }))
-  assert.equal(first.code, 0, first.stdout)
-  assert.equal(first.outputs['fragment-file'], file)
-  const written = JSON.parse(readFileSync(file, 'utf8'))
-  assert.deepEqual(fragmentErrors(written), [])
-  await new Promise(r => setTimeout(r, 20))
-  const again = await run(github({ 'INPUT_OUTPUT-FILE': file }))
-  assert.match(again.stdout, /Reusing the fragment already in/)
-  assert.deepEqual(JSON.parse(readFileSync(file, 'utf8')), written)
-  const changed = await run(github({ 'INPUT_OUTPUT-FILE': file, INPUT_RESULT: 'failure' }))
-  assert.doesNotMatch(changed.stdout, /Reusing/)
-  assert.equal(JSON.parse(readFileSync(file, 'utf8')).evidence.result, 'fail')
+  const result = await run(github({ 'INPUT_OUTPUT-FILE': file }))
+  assert.equal(result.code, 0, result.stdout)
+  assert.equal(result.outputs['fragment-file'], file)
+  assert.equal(result.outputs.status, undefined)
+  assert.deepEqual(fragmentErrors(JSON.parse(readFileSync(file, 'utf8'))), [])
 })
 
 test('without endpoint or output-file the fragment goes to RUNNER_TEMP', async () => {

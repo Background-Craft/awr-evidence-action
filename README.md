@@ -46,17 +46,15 @@ A GitHub Action that records a CI run as Agent Work Record (AWR) v0 evidence. It
 }
 ```
 
-- `id` is the run attempt, so a rerun is new evidence and a repeated send of one attempt collides instead of adding a duplicate. Send one fragment per run attempt and work item.
+- `id` is the run attempt, so a rerun is new evidence and a repeated send of one attempt collides instead of adding a duplicate. Send one fragment per run attempt and work item. Every job of a matrix shares the run attempt and so the evidence id: send from one leg only, or give each leg its own work item.
 - `uri` is the run's page.
 - `subject.gitCommit` is the pull request's head commit on `pull_request` and `pull_request_target` events, not the merge commit GitHub tests, and `GITHUB_SHA` otherwise.
 - `at` is when the step ran.
-- With `body: hydrant`, `requestId` is a UUID v5 of the evidence id, so the same attempt always sends the same request id.
+- With `body: hydrant`, `requestId` is a UUID v5 of the work URI and the evidence id, so a retried send of one attempt to one work item always carries the same request id, and the same attempt sent to another work item carries a different one.
 
 The send is retried once after a 429 (waiting for `Retry-After`, at most 60 seconds), a 5xx or a network error. Any other 4xx fails at once with the tracker's message. Redirects are not followed, so the token goes nowhere but `endpoint`. After a successful send, the step logs the tracker's response, cut at 2000 characters.
 
 Pass `token` from a secret. GitHub masks secrets in the log from the start of the job; the action's own mask only starts when its step runs, after the runner has already printed the step's inputs.
-
-If the step runs again in the same attempt with the same inputs and the same `output-file`, it sends the fragment it wrote the first time, `at` included, rather than a new one under the same id.
 
 ### The job status
 
@@ -102,7 +100,7 @@ To send the bare fragment to a tracker instead, add `endpoint` and `token`:
 
 ## Example: Hydrant
 
-Hydrant takes fragments at `POST /api/agent/issues/{issue id}/work-record/fragments`, from an agent key with write access, with the `hydrant` body. It accepts a fragment only when `by` is the key's own agent id and `workspace` and `work` name that issue.
+Hydrant takes fragments at `POST /api/agent/issues/{issue id}/work-record/fragments`, from an agent key with write access, with the `hydrant` body. It accepts a fragment only when `by` is the sender's own agent URI and `workspace` and `work` name that issue. For evidence it accepts only the `ready_for_review` and `done` claims, and only a 40-hex `gitCommit` subject.
 
 ```yaml
 - name: Send the run to Hydrant
@@ -120,7 +118,7 @@ Hydrant takes fragments at `POST /api/agent/issues/{issue id}/work-record/fragme
 Finding the values:
 
 - `workspace` and `work` are the `workspace` and `work.id` of the issue's record from Hydrant's `read_work_record` MCP tool. The workspace id and issue number in them never change when the workspace is renamed.
-- `by` is the agent key's id under the workspace. If it is wrong, Hydrant's refusal names the id it expects.
+- `by` is `{workspace URI}/agents/{caller id}`, where the caller id is `caller.id` from Hydrant's `get_workspace_identity` MCP tool called with the same key (the key or connection id). If it is wrong, Hydrant's refusal names the URI it expects.
 - The endpoint takes the issue's id (a UUID), which `get_issue` returns, not its number.
 
 A repeated send of the same attempt with the same fragment replays Hydrant's first receipt. Hydrant answers 429 with `Retry-After` past its per-minute fragment budgets, which the action waits for once.

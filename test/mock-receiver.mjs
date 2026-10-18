@@ -6,7 +6,7 @@
 import { createServer } from 'node:http'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { fragmentErrors, requestIdFor } from '../index.mjs'
+import { fragmentErrors, requestIdOf } from '../index.mjs'
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
@@ -31,7 +31,7 @@ export function receiver(token) {
       if (path === 'hydrant') {
         if (Object.keys(body).sort().join() !== 'fragment,requestId') return refuse('hydrant body must be exactly { requestId, fragment }')
         if (!uuid.test(body.requestId)) return refuse('requestId is not a UUID')
-        if (body.requestId !== requestIdFor(body.fragment?.evidence?.id ?? '')) return refuse('requestId is not derived from the evidence id')
+        if (!body.fragment?.evidence || body.requestId !== requestIdOf(body.fragment)) return refuse('requestId is not derived from the work and evidence id')
         fragment = body.fragment
       } else if ('requestId' in body) return refuse('bare body must be the fragment itself')
       const errors = fragmentErrors(fragment)

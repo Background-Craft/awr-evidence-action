@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // awr-evidence-action: emits one Agent Work Record v0 evidence fragment (kind ci_run) for the current GitHub Actions
 // run, writes it to a file and, given an endpoint, POSTs it there. Node's standard library only.
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -100,10 +100,12 @@ function check(value, node, path, errors) {
 }
 export const fragmentErrors = fragment => check(fragment, schema.$defs.evidence_fragment, '$', [])
 
-// UUID v5 (RFC 9562) of the evidence id in the URL namespace: the same run attempt always gets the same request id.
-export function requestIdFor(evidenceId, namespace = '6ba7b811-9dad-11d1-80b4-00c04fd430c8') {
+// UUID v5 (RFC 9562) in the URL namespace. Hydrant keys receipts by sender and request id, so the request id covers the
+// work item and the run attempt: the same pair always gets the same id, and one attempt can report to several issues.
+export const requestIdOf = fragment => requestIdFor(`${fragment.work}\n${fragment.evidence.id}`)
+export function requestIdFor(name, namespace = '6ba7b811-9dad-11d1-80b4-00c04fd430c8') {
   const ns = Buffer.from(namespace.replace(/-/g, ''), 'hex')
-  const h = createHash('sha1').update(Buffer.concat([ns, Buffer.from(evidenceId, 'utf8')])).digest().subarray(0, 16)
+  const h = createHash('sha1').update(Buffer.concat([ns, Buffer.from(name, 'utf8')])).digest().subarray(0, 16)
   h[6] = (h[6] & 0x0f) | 0x50
   h[8] = (h[8] & 0x3f) | 0x80
   const x = h.toString('hex')
@@ -112,7 +114,7 @@ export function requestIdFor(evidenceId, namespace = '6ba7b811-9dad-11d1-80b4-00
 
 export function bodyFor(mode, fragment) {
   if (mode === 'fragment') return fragment
-  if (mode === 'hydrant') return { requestId: requestIdFor(fragment.evidence.id), fragment }
+  if (mode === 'hydrant') return { requestId: requestIdOf(fragment), fragment }
   throw new ConfigError(`body "${mode}" is not fragment or hydrant.`)
 }
 
@@ -146,7 +148,7 @@ export async function send(endpoint, token, body, { log = () => {}, sleep = s =>
     const why = failure ? `network error (${failure.cause?.code ?? failure.name})` : `${response.status}: ${await messageOf(response)}`
     if (attempt > 1) throw Object.assign(new SendError(`${endpoint} failed after a retry: ${why}`), { status: response?.status })
     const wait = response?.status === 429 ? retryDelaySeconds(response.headers.get('retry-after')) : 2
-    log(`Send failed with ${why}; retrying once in ${wait}s.`)
+    log(`Send failed with ${escapeData(why)}; retrying once in ${wait}s.`)
     await sleep(wait)
   }
 }
@@ -155,7 +157,7 @@ export async function send(endpoint, token, body, { log = () => {}, sleep = s =>
 const escapeData = s => String(s).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A')
 function setOutput(env, name, value) {
   if (!env.GITHUB_OUTPUT) return
-  const delimiter = `awr_${requestIdFor(String(Math.random()))}`
+  const delimiter = `awr_${randomUUID()}`
   appendFileSync(env.GITHUB_OUTPUT, `${name}<<${delimiter}\n${value}\n${delimiter}\n`)
 }
 
@@ -175,15 +177,8 @@ export async function main(env = process.env, out = s => process.stdout.write(`$
       const loopback = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)
       if (url.protocol !== 'https:' && !(url.protocol === 'http:' && loopback)) throw new ConfigError('endpoint must use https (plain http is allowed only for localhost).')
     }
-    let fragment = buildFragment(env)
+    const fragment = buildFragment(env)
     const file = input(env, 'output-file') || (endpoint ? '' : join(env.RUNNER_TEMP || '.', `awr-evidence-${env.GITHUB_RUN_ID}-${env.GITHUB_RUN_ATTEMPT || '1'}.json`))
-    // A step run again in the same attempt with the same inputs resends the fragment it wrote, time included, so a
-    // tracker that keys on the request sees the same send again rather than a different one under the same id.
-    if (file && existsSync(file)) {
-      const earlier = (() => { try { return JSON.parse(readFileSync(file, 'utf8')) } catch { return null } })()
-      const same = earlier?.evidence && isDeepStrictEqual({ ...earlier, evidence: { ...earlier.evidence, at: fragment.evidence.at } }, fragment)
-      if (same && fragmentErrors(earlier).length === 0) { fragment = earlier; say(`Reusing the fragment already in ${file}.`) }
-    }
     const errors = fragmentErrors(fragment)
     if (errors.length) throw new ConfigError(`The fragment does not match the Agent Work Record v0 schema:\n  ${errors.join('\n  ')}`)
     setOutput(env, 'evidence-id', fragment.evidence.id)
@@ -198,7 +193,7 @@ export async function main(env = process.env, out = s => process.stdout.write(`$
       const { status, text } = await send(endpoint, token, bodyFor(mode, fragment), { log: say })
       setOutput(env, 'status', String(status))
       say(`Sent to ${endpoint}: ${status}.`)
-      if (text.trim()) say(`Response: ${text.trim().slice(0, 2000)}`)
+      if (text.trim()) say(`Response: ${escapeData(text.trim().slice(0, 2000))}`)
       return 0
     } catch (error) {
       if (!(error instanceof SendError)) throw error
