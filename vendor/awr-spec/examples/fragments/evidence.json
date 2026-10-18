@@ -1,0 +1,18 @@
+{
+  "spec": "agent-work-record/v0",
+  "workspace": "https://tracker.example.com/w/acme",
+  "work": "https://tracker.example.com/w/acme/issues/42",
+  "evidence": {
+    "id": "https://ci.example.com/acme/app/runs/123456790",
+    "kind": "ci_run",
+    "uri": "https://ci.example.com/acme/app/runs/123456790",
+    "claim": "ready_for_review",
+    "by": "https://tracker.example.com/w/acme/agents/builder",
+    "at": "2026-10-14T13:40:00Z",
+    "subject": {
+      "gitCommit": "3f2a9c1435b35d5f7909a03b9e61584db41b2143"
+    },
+    "result": "pass",
+    "note": "Nightly browser suite at head 3f2a9c1. Sent by Builder's agent runner, which authenticates as Builder."
+  }
+}

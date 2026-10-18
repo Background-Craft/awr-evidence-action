@@ -1,0 +1,54 @@
+name: Agent Work Record evidence
+description: Send this CI run as an Agent Work Record v0 evidence fragment, or write it to a file.
+author: Background Craft
+branding:
+  icon: check-square
+  color: blue
+inputs:
+  workspace:
+    description: AWR URI of the workspace the work belongs to.
+    required: true
+  work:
+    description: AWR URI of the work item.
+    required: true
+  by:
+    description: URI of the agent or person the tracker authenticates the sender as.
+    required: true
+  claim:
+    description: The claim the run supports. ready_for_review, done, released or a URI.
+    required: false
+    default: ready_for_review
+  result:
+    description: pass, fail, pending or neutral, or a job status (success, failure, cancelled, skipped). Defaults to the job's status when the step runs.
+    required: false
+    default: ${{ job.status }}
+  note:
+    description: Short context for the evidence.
+    required: false
+  endpoint:
+    description: URL to POST the fragment to. Without it the action only writes the fragment file.
+    required: false
+  token:
+    description: Bearer token sent only to endpoint. Never logged.
+    required: false
+  body:
+    description: fragment (the bare fragment JSON) or hydrant ({ requestId, fragment }).
+    required: false
+    default: fragment
+  output-file:
+    description: Path to write the fragment to. Without endpoint or output-file, it goes to RUNNER_TEMP.
+    required: false
+  fail-on-error:
+    description: When false, a failed send is a warning and the job continues.
+    required: false
+    default: 'true'
+outputs:
+  evidence-id:
+    description: The evidence id, the run attempt URL.
+  fragment-file:
+    description: Absolute path of the fragment file, when one was written.
+  status:
+    description: The HTTP status of the send, when the action sent the fragment.
+runs:
+  using: node24
+  main: index.mjs

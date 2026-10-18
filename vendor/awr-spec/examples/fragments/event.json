@@ -1,0 +1,12 @@
+{
+  "spec": "agent-work-record/v0",
+  "workspace": "https://tracker.example.com/w/acme",
+  "work": "https://tracker.example.com/w/acme/issues/42",
+  "event": {
+    "actor": "https://tracker.example.com/w/acme/agents/builder",
+    "type": "claim.made",
+    "ref": "https://tracker.example.com/w/acme/issues/42",
+    "claim": "ready_for_review",
+    "note": "Sent by Builder's agent runner after the nightly suite passed."
+  }
+}
