@@ -148,7 +148,7 @@ export async function send(endpoint, token, body, { log = () => {}, sleep = s =>
     const why = failure ? `network error (${failure.cause?.code ?? failure.name})` : `${response.status}: ${await messageOf(response)}`
     if (attempt > 1) throw Object.assign(new SendError(`${endpoint} failed after a retry: ${why}`), { status: response?.status })
     const wait = response?.status === 429 ? retryDelaySeconds(response.headers.get('retry-after')) : 2
-    log(`Send failed with ${escapeData(why)}; retrying once in ${wait}s.`)
+    log(`Send failed with ${why}; retrying once in ${wait}s.`)
     await sleep(wait)
   }
 }
@@ -164,8 +164,11 @@ function setOutput(env, name, value) {
 export async function main(env = process.env, out = s => process.stdout.write(`${s}\n`)) {
   const token = input(env, 'token')
   const redact = s => token ? String(s).split(token).join('***') : String(s)
-  const say = s => out(redact(s))
-  if (token) out(`::add-mask::${token}`)
+  // Every line is redacted first and escaped second, so neither tracker text nor inputs can start a new line or a
+  // workflow command, and a token is never printed in its escaped form, which the runner's mask would not catch.
+  const say = s => out(escapeData(redact(s)))
+  const command = (name, s) => out(`::${name}::${escapeData(redact(s))}`)
+  if (token) out(`::add-mask::${escapeData(token)}`)
   try {
     const endpoint = input(env, 'endpoint')
     const mode = input(env, 'body') || 'fragment'
@@ -193,17 +196,17 @@ export async function main(env = process.env, out = s => process.stdout.write(`$
       const { status, text } = await send(endpoint, token, bodyFor(mode, fragment), { log: say })
       setOutput(env, 'status', String(status))
       say(`Sent to ${endpoint}: ${status}.`)
-      if (text.trim()) say(`Response: ${escapeData(text.trim().slice(0, 2000))}`)
+      if (text.trim()) say(`Response: ${text.trim().slice(0, 2000)}`)
       return 0
     } catch (error) {
       if (!(error instanceof SendError)) throw error
       if (error.status) setOutput(env, 'status', String(error.status))
-      if (failOnError) { say(`::error::${escapeData(redact(error.message))}`); return 1 }
-      say(`::warning::${escapeData(redact(error.message))}`)
+      if (failOnError) { command('error', error.message); return 1 }
+      command('warning', error.message)
       return 0
     }
   } catch (error) {
-    say(`::error::${escapeData(redact(error instanceof ConfigError ? error.message : error.stack ?? error))}`)
+    command('error', error instanceof ConfigError ? error.message : error.stack ?? error)
     return 1
   }
 }

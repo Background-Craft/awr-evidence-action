@@ -206,16 +206,21 @@ test('tracker text cannot inject workflow commands or lines into the log', async
   } finally { await server.close() }
 })
 
-test('a token the tracker echoes in a 503 and then in a 200 body is never printed', async () => {
+for (const token of [TOKEN, 'tok%41SECRET%0Avalue']) test(`a token the tracker echoes in a 503 and then in a 200 body is never printed (${token})`, async () => {
   const echo = req => JSON.stringify({ error: `Saw ${req.headers.authorization}` })
   const server = await twice(503, echo, echo)
+  const mask = `::add-mask::${token.replace(/%/g, '%25')}`
   try {
-    const result = await run(github({ INPUT_ENDPOINT: server.url, INPUT_TOKEN: TOKEN }))
+    const result = await run(github({ INPUT_ENDPOINT: server.url, INPUT_TOKEN: token }))
     assert.equal(result.code, 0, result.stdout)
     assert.match(result.stdout, /Send failed with 503: Saw Bearer \*\*\*; retrying once in 2s\./)
     assert.match(result.stdout, /^Response: \{"error":"Saw Bearer \*\*\*"\}$/m)
-    assert.equal(withoutMask(result.stdout).includes(TOKEN), false, result.stdout)
-    assert.equal(result.stderr.includes(TOKEN), false)
+    // Neither the token nor its escaped form may appear outside the add-mask line.
+    const rest = result.stdout.split('\n').filter(l => l !== mask).join('\n')
+    for (const form of [token, token.replace(/%/g, '%25')]) {
+      assert.equal(rest.includes(form), false, result.stdout)
+      assert.equal(result.stderr.includes(form), false)
+    }
   } finally { await server.close() }
 })
 

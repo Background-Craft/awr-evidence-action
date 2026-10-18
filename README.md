@@ -52,7 +52,7 @@ A GitHub Action that records a CI run as Agent Work Record (AWR) v0 evidence. It
 - `at` is when the step ran.
 - With `body: hydrant`, `requestId` is a UUID v5 of the work URI and the evidence id, so a retried send of one attempt to one work item always carries the same request id, and the same attempt sent to another work item carries a different one.
 
-The send is retried once after a 429 (waiting for `Retry-After`, at most 60 seconds), a 5xx or a network error. Any other 4xx fails at once with the tracker's message. Redirects are not followed, so the token goes nowhere but `endpoint`. After a successful send, the step logs the tracker's response, cut at 2000 characters.
+The send is retried once after a 429 (waiting for `Retry-After`, at most 60 seconds), a 5xx or a network error. Any other 4xx fails at once with the tracker's message. Redirects are not followed, so the token goes nowhere but `endpoint`. After a successful send, the step logs the tracker's response, cut at 2000 characters. Every log line is redacted first and then escaped, so tracker text cannot start a new line or a workflow command.
 
 Pass `token` from a secret. GitHub masks secrets in the log from the start of the job; the action's own mask only starts when its step runs, after the runner has already printed the step's inputs.
 
@@ -121,7 +121,7 @@ Finding the values:
 - `by` is `{workspace URI}/agents/{caller id}`, where the caller id is `caller.id` from Hydrant's `get_workspace_identity` MCP tool called with the same key (the key or connection id). If it is wrong, Hydrant's refusal names the URI it expects.
 - The endpoint takes the issue's id (a UUID), which `get_issue` returns, not its number.
 
-A repeated send of the same attempt with the same fragment replays Hydrant's first receipt. Hydrant answers 429 with `Retry-After` past its per-minute fragment budgets, which the action waits for once.
+Only an identical retry replays: when the action resends the same body after a 429, 5xx or network error, Hydrant answers with its first receipt. A separate second send for the same attempt and work item, such as the step running twice, has a new `at` and is refused with 409 without adding a duplicate; set `fail-on-error: false` if your workflow can do that. Hydrant answers 429 with `Retry-After` past its per-minute fragment budgets, which the action waits for once.
 
 ## The spec
 
