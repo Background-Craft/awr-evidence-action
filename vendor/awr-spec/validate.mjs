@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Validates the agent work record v0 and v0.1 examples with no dependencies: node docs/spec/validate.mjs
-// Given paths (node docs/spec/validate.mjs record.json ...), it checks only those records, against the schema and rules.
+// Validates the agent work record v0 and v0.1 examples with no dependencies: node spec/validate.mjs
+// Given paths (node spec/validate.mjs record.json ...), it checks only those records, against the schema and rules.
 //
 // It enforces a declared subset of JSON Schema draft 2020-12 and refuses any schema keyword outside it, so the schema
 // can never rely on a rule this script skips. It then applies the record rules JSON Schema cannot express (references

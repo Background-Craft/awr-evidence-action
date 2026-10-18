@@ -125,7 +125,7 @@ Only an identical retry replays: when the action resends the same body after a 4
 
 ## The spec
 
-The AWR v0 spec is to be published at hydrant.dev/agent-work-record and in a public spec repository. Until then, `vendor/awr-spec/` holds an unchanged copy of the spec, its JSON Schema, its examples and its dependency-free `validate.mjs`, from `docs/spec/` of the Hydrant repository at commit `2c9bfbe783b8449487c7e2b092f347859d26dbdf`. `vendor/awr-spec.sha256` lists the checksum of every file there, and CI checks it.
+The spec, its JSON Schema and its dependency-free validator live at [Background-Craft/agent-work-record](https://github.com/Background-Craft/agent-work-record). `vendor/awr-spec/` holds an unchanged copy of that repository's `spec/` folder at tag [`v0.1`](https://github.com/Background-Craft/agent-work-record/releases/tag/v0.1). `vendor/awr-spec.sha256` lists the checksum of every file there, and CI checks it.
 
 ## Development
 
