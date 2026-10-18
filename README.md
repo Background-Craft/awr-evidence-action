@@ -52,7 +52,9 @@ A GitHub Action that records a CI run as Agent Work Record (AWR) v0 evidence. It
 - `at` is when the step ran.
 - With `body: hydrant`, `requestId` is a UUID v5 of the evidence id, so the same attempt always sends the same request id.
 
-The send is retried once after a 429 (waiting for `Retry-After`, at most 60 seconds), a 5xx or a network error. Any other 4xx fails at once with the tracker's message. Redirects are not followed, so the token goes nowhere but `endpoint`.
+The send is retried once after a 429 (waiting for `Retry-After`, at most 60 seconds), a 5xx or a network error. Any other 4xx fails at once with the tracker's message. Redirects are not followed, so the token goes nowhere but `endpoint`. After a successful send, the step logs the tracker's response, cut at 2000 characters.
+
+Pass `token` from a secret. GitHub masks secrets in the log from the start of the job; the action's own mask only starts when its step runs, after the runner has already printed the step's inputs.
 
 If the step runs again in the same attempt with the same inputs and the same `output-file`, it sends the fragment it wrote the first time, `at` included, rather than a new one under the same id.
 
@@ -117,7 +119,7 @@ Hydrant takes fragments at `POST /api/agent/issues/{issue id}/work-record/fragme
 
 Finding the values:
 
-- `workspace` and `work` are the `workspace` and `work.id` of the issue's record from Hydrant's `export_work_record` tool. The workspace id and issue number in them never change when the workspace is renamed.
+- `workspace` and `work` are the `workspace` and `work.id` of the issue's record from Hydrant's `read_work_record` MCP tool. The workspace id and issue number in them never change when the workspace is renamed.
 - `by` is the agent key's id under the workspace. If it is wrong, Hydrant's refusal names the id it expects.
 - The endpoint takes the issue's id (a UUID), which `get_issue` returns, not its number.
 

@@ -195,9 +195,10 @@ export async function main(env = process.env, out = s => process.stdout.write(`$
     }
     if (!endpoint) return 0
     try {
-      const { status } = await send(endpoint, token, bodyFor(mode, fragment), { log: say })
+      const { status, text } = await send(endpoint, token, bodyFor(mode, fragment), { log: say })
       setOutput(env, 'status', String(status))
       say(`Sent to ${endpoint}: ${status}.`)
+      if (text.trim()) say(`Response: ${text.trim().slice(0, 2000)}`)
       return 0
     } catch (error) {
       if (!(error instanceof SendError)) throw error

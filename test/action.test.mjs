@@ -134,6 +134,7 @@ test('post mode: both body shapes retry a 429 after Retry-After, then succeed', 
       assert.ok(Date.now() - started >= 1000, 'waited for Retry-After')
       assert.match(result.stdout, /Send failed with 429: Slow down\.; retrying once in 1s\./)
       assert.equal(result.outputs.status, '200')
+      assert.match(result.stdout, /^Response: \{"evidence":"https:\/\/github\.com\/acme\/app\/actions\/runs\/123456\/attempts\/2","received":true\}$/m)
       assert.equal(result.outputs['evidence-id'], 'https://github.com/acme/app/actions/runs/123456/attempts/2')
       assert.equal(result.outputs['fragment-file'], undefined, 'no file without output-file when sending')
     }
