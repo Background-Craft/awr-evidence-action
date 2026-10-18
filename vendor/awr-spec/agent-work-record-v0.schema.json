@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agentworkrecord.org/schema/v0.json",
   "title": "Agent Work Record (AWR) v0 and v0.1",
-  "description": "A record (one per unit of work) or a fragment (one evidence item or one event, sent by a system that does not own the work). A record says agent-work-record/v0 or, when it uses a v0.1 addition, agent-work-record/v0.1; fragments stay v0. Uses only the keyword subset that docs/spec/validate.mjs enforces.",
+  "description": "A record (one per unit of work) or a fragment (one evidence item or one event, sent by a system that does not own the work). A record says agent-work-record/v0 or, when it uses a v0.1 addition, agent-work-record/v0.1; fragments stay v0. Uses only the keyword subset that spec/validate.mjs enforces.",
   "anyOf": [
     { "$ref": "#/$defs/record" },
     { "$ref": "#/$defs/evidence_fragment" },

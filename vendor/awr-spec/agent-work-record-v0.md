@@ -1,6 +1,6 @@
 # Agent Work Record (AWR), v0 (draft)
 
-Status: draft for native #681, with the additive [v0.1](#v01-additions) from native #710. Nothing here is published, licensed or promised to anyone outside the repository.
+Status: draft, with the additive [v0.1](#v01-additions). Licensed under Apache-2.0. Changes are listed in [CHANGELOG.md](../CHANGELOG.md).
 
 ## What this is
 
@@ -10,7 +10,7 @@ AI agents now write, review and ship software. The person responsible needs thre
 2. **What shows it was done?** The pull request, the CI run, the screenshot, the review.
 3. **Who said it was good?** Which person accepted or rejected it, and on what basis.
 
-This spec is one small JSON document per unit of work that answers all three, plus an append-only audit trail of how it happened. A tracker, CI system or agent runner should be able to write and read it in an afternoon. Hydrant is the reference implementation in a later milestone; the [Hydrant mapping](#hydrant-mapping) shows how far it is today.
+This spec is one small JSON document per unit of work that answers all three, plus an append-only audit trail of how it happened. A tracker, CI system or agent runner should be able to write and read it in an afternoon. [IMPLEMENTERS.md](../IMPLEMENTERS.md) lists the tools that write or read it.
 
 The spec covers five areas: [agent identity](#1-agent-identity), [grants](#2-grants), [evidence](#3-evidence), [sign-off](#4-sign-off) and [audit events](#5-audit-events). A system that does not own the work, such as a CI service, can send a single piece of evidence or a single event as a [fragment](#fragments).
 
@@ -25,7 +25,7 @@ The spec covers five areas: [agent identity](#1-agent-identity), [grants](#2-gra
 | `examples/v0.1/*.json` | One record for each [v0.1 addition](#v01-additions). |
 | `examples/fragments/*.json` | Two [fragments](#fragments): one evidence item, one event. |
 | `examples/fragments/invalid/*.json` | Two fragments that must fail. |
-| `examples/hydrant/*.json` | Records Hydrant exported from seeded issues (#699): a full issue, a legacy-only issue, one with merged fragments and one that needs v0.1 (`kept.json`, #710). |
+| `examples/hydrant/*.json` | Records Hydrant exported from seeded issues: a full issue, a legacy-only issue, one with merged fragments and one that needs v0.1 (`kept.json`). |
 | [validate.mjs](validate.mjs) | The check. No dependencies. |
 
 ## Design rules
@@ -446,7 +446,7 @@ This block must equal [examples/end-to-end.json](examples/end-to-end.json); the 
 One command, from the repository root, with Node 24 and nothing installed:
 
 ```sh
-node docs/spec/validate.mjs
+node spec/validate.mjs
 ```
 
 It exits 0 only when all of these hold:
@@ -456,15 +456,15 @@ It exits 0 only when all of these hold:
 - Every file in `examples/invalid/` fails with its expected message. Each breaks one rule: a timestamp without `T` and zone, an impossible date (February 30), a v0 rejection without a reason, an unknown field, an agent acting after its grant expired, an agent signing off without a `sign_off` grant and without saying `sign_off_grant: false`, an agent recording a person's sign-off without naming itself in `via`, a `grant.revoked` event that names evidence, and two audit events swapped. The two agent cases say `agent-work-record/v0.1`, to show v0.1 still refuses them. A rejection without a reason is still invalid in v0 (`examples/invalid/reject-without-note.json` says v0); the same record saying v0.1 is valid (`examples/v0.1/reject-without-note.json`). The two invalid fragments are an event that carries its own `seq` and `at`, and an evidence item whose `claim` is a number.
 - Every JSON block in this document marked for validation passes against its schema part, and the end-to-end block equals the example file.
 
-Given paths (`node docs/spec/validate.mjs record.json ...`), it checks only those records, against the schema and the record rules, and exits 1 if any fails.
+Given paths (`node spec/validate.mjs record.json ...`), it checks only those records, against the schema and the record rules, and exits 1 if any fails.
 
-`scripts/check_backlog.py` runs this command, so CI checks it wherever it checks the docs: the docs tier, the quality suite and release validation. A pull request that changes only `docs/spec/` stays in the cheap docs tier.
+This repository runs the same command on every pull request ([.github/workflows/validate.yml](../.github/workflows/validate.yml)).
 
 The schema is plain draft 2020-12, so any conforming validator can check shape too. Its top level accepts a record or either kind of fragment. Only the record rules need the script (or an equivalent written from the list above).
 
 ## v0.1 additions
 
-v0.1 (native #710) is additive. Every v0 record still validates and means the same, and every v0 rule still applies to a record that says `agent-work-record/v0`. A writer says `agent-work-record/v0.1` only for a record that uses one of these additions, so a v0 reader keeps reading every other record. Fragments are unchanged and stay `agent-work-record/v0`. Signing keeps `predicateType` `https://agentworkrecord.org/v0` for both; the record's own `spec` says which one it is.
+v0.1 is additive. Every v0 record still validates and means the same, and every v0 rule still applies to a record that says `agent-work-record/v0`. A writer says `agent-work-record/v0.1` only for a record that uses one of these additions, so a v0 reader keeps reading every other record. Fragments are unchanged and stay `agent-work-record/v0`. Signing keeps `predicateType` `https://agentworkrecord.org/v0` for both; the record's own `spec` says which one it is.
 
 v0 can name a person only as an agent's person, a grantor or a decider, and needs an agent's sign-off to carry a `sign_off` grant. So a v0 writer had to leave out what follows. v0.1 keeps each one, said plainly.
 
@@ -563,141 +563,6 @@ Checked on October 14, 2026.
 - **Overlap.** Both record what an agent did and when.
 - **Why v0 does not duplicate it.** Telemetry is operational: sampled, short-lived and fine-grained (every model and tool call). v0 keeps the few durable facts a person needs to trust the work: permission, evidence, decision. It never records prompts or model output.
 
-## Hydrant mapping
+## Implementations
 
-Where Hydrant records each v0 field today, checked against `origin/main` at 66c62348. "Gap" means Hydrant has nothing structured for it. "Partial" means something close with a stated difference. Migrations are in `migrations/`; the agent API is MCP in `worker/mcp.ts`.
-
-### Record and work
-
-| v0 field | Hydrant today |
-|---|---|
-| `spec` | Gap. The closest is the workspace export's `exportFormatVersion` (`worker/workspace-export.ts:28`), which versions a whole-workspace dump. |
-| `id` | Gap. No per-issue record exists. |
-| `workspace` | `workspace.id` (`002_workspaces.sql:6`); agents carry it as `auth_actor.workspace_id` (`011_agent_credentials.sql:17`). |
-| `work.id` | `issue.id` (`003_issues.sql:45`); MCP `get_issue` returns its `url` (`worker/mcp.ts:313`). |
-| `work.title` | `issue.title` (`003_issues.sql:48`). |
-
-### Agent identity
-
-| v0 field | Hydrant today |
-|---|---|
-| `agents[].id` | `auth_actor.id` with `kind = 'agent'` (`011_agent_credentials.sql:14-15`), one per connection or key. Partial: a connection can also be linked to a named agent (`agent_actor_link.named_agent_id`, `058_agent_actor_link.sql:4-12`, pointing at `issue_assignee`, `003_issues.sql:11`); v0 has one identity, not two. |
-| `agents[].name` | `auth_actor.name` (`011_agent_credentials.sql:18`). Reads and export render it as "Name (agent; via Person)" (`worker/issues.ts:1145`, `worker/workspace-export.ts:181`, `cli/src/view.ts:43-46`). |
-| `agents[].on_behalf_of` | `auth_actor.user_id`, the granting user (`011_agent_credentials.sql:16`), read as `granting_user_id`/`granting_user_name` (`worker/issues.ts:1145`). |
-| `agents[].client` | `auth_actor.client_id` for OAuth connections (`034_mcp_oauth.sql:36`) and `oauth_client.name` (`034_mcp_oauth.sql:5`). Gap for API keys, which have no client. |
-| `agents[].model` | Gap. |
-
-### Grants
-
-| v0 field | Hydrant today |
-|---|---|
-| `grants[].id` | Partial. The connection (`auth_actor.id`) is the only permission object; Playbook grants are one row per actor (`playbook_grant`, `021_playbook.sql:24`). Ship grants have no id: they are prose in `docs/decisions.md` (for example `:544-546`) and comments on native issues. |
-| `grants[].agent` | `auth_actor.id`; `playbook_grant.actor_id` (`021_playbook.sql:25`). |
-| `grants[].granted_by` | `auth_actor.user_id`. Ship grants name Henry or Arus in prose only (`docs/decisions.md:546`). |
-| `grants[].actions` | Partial. `read`/`write`: `auth_actor.write_access` (`034_mcp_oauth.sql:37`, `079_agent_key_access.sql`) and OAuth scopes `workspace.read`/`workspace.write` (`worker/oauth-config.ts:11`, `oauth_access_token.scopes` in `034_mcp_oauth.sql:9`). Playbook `propose`/`publish`/`review` (`021_playbook.sql:26`). Gap for `open_pull_request`, `merge`, `release` and `sign_off`: these exist only as ship-grant prose (`.agents/skills/ship/SKILL.md`). |
-| `grants[].excludes` | Gap. Ship grants list "Reserved" items in prose (`docs/decisions.md:546`). |
-| `grants[].work` | Gap. Connections and keys are workspace-wide; per-issue scope exists only in ship-grant prose. |
-| `grants[].issued_at` | `auth_actor.created_at` (`011_agent_credentials.sql:21`). |
-| `grants[].expires_at` | Partial. Credential expiry, not grant expiry: `auth_api_key.expiresAt` (`011_agent_credentials.sql:3`), `oauth_access_token.expiresAt` (`034_mcp_oauth.sql:9`). |
-| `grants[].note` | Gap. Ship-grant records quote the exact words, as issue comments. |
-
-### Evidence
-
-| v0 field | Hydrant today |
-|---|---|
-| `evidence[].id` | Partial. Each source has its own key: pull request `(workspace_id, id)` (`063_github_pull_requests.sql:61-62`), `attachment.id` (`005_attachments.sql:3`). No shared evidence id. |
-| `evidence[].kind` | `pull_request`: `github_pull_request` plus `github_issue_link` (`063_github_pull_requests.sql:61`, `:96`). `ci_run`: `github_pull_request.readiness` (`075_github_readiness.sql:12`), checks typed as `ReadinessCheck` (`shared/github-readiness.ts:9`). `review`: `github_pull_request_review` (`063_github_pull_requests.sql:85`). `screenshot`: `attachment` (`005_attachments.sql:2`). `summary`: the reviewer brief `issue.brief` (`100_issue_brief.sql:7`; MCP `update_issue` `brief`, `worker/mcp.ts:98`). `test_output`, `attestation`: gap (test output lives only in comment text, `issue_activity.comment_body`, `004_comments.sql:32`). |
-| `evidence[].uri` | `github_pull_request.url` (`063_github_pull_requests.sql:67`); `ReadinessCheck.url` (`shared/github-readiness.ts:9`); attachment URLs (`worker/workspace-export.ts:192`). Gap for the brief, which has no URL of its own. |
-| `evidence[].claim` | Gap. The claim is implied by the stage the issue is in (`issue_activity.before_status_name`/`after_status_name`, `006_workflow.sql:63-64`). |
-| `evidence[].by` | `github_issue_link.actor_id` (`063_github_pull_requests.sql:103`), `attachment.uploader_id` (an `auth_actor` since `011_agent_credentials.sql:50`), `issue.brief_actor` (`100_issue_brief.sql:8`). |
-| `evidence[].at` | `github_issue_link.created_at` (`063_github_pull_requests.sql:104`), `attachment.created_at` (`005_attachments.sql:13`), readiness `observed_at` (`shared/github-readiness.ts:16`), `issue.brief_at` (`100_issue_brief.sql:9`). |
-| `evidence[].subject` | Partial. Pull requests and CI: `github_pull_request.head_sha` (`075_github_readiness.sql:10`) and the readiness observation's `head_sha` (`shared/github-readiness.ts:16`), which pins checks to one head. Gap for screenshots and briefs. |
-| `evidence[].result` | Partial. `ReadinessCheck.state` has six values (`success`, `pending`, `failing`, `neutral`, `skipped`, `unknown`; `shared/github-readiness.ts:8`); review `state` has four (`063_github_pull_requests.sql:89`). Both map onto v0's four. |
-| `evidence[].digest` | `attachment.sha256` (`005_attachments.sql:11`). Pull request heads map to `subject`, not `digest`. |
-| `evidence[].note` | The brief text; comment bodies. |
-
-### Sign-off
-
-| v0 field | Hydrant today |
-|---|---|
-| `signoffs[].id` | `issue_activity.id` of the row that carries the decision (`003_issues.sql:65`). |
-| `signoffs[].by` | `issue_activity.actor_id` resolved to its granting user (`auth_actor.user_id`): "an agent decides as its granting user" (`worker/mcp.ts:102-103`). Environment approvals also keep `issue.approval_user` (`066_environment_approvals.sql:7`). |
-| `signoffs[].via` | `issue_activity.actor_id` when that actor is an agent. Since #711 an agent decides only with a live `sign_off` grant from its granting user (#693); decisions recorded before without one carry `sign_off_grant: false` (#697) and export with it in v0.1. |
-| `signoffs[].decision` | Review stages: `review_event.decision` `accept`/`send_back` (`shared/review.ts:7-10`, `094_stage_reviewers.sql:9`). Environments: `approval_event.decision` `approved`/`behind_flag`/`held`/`passed`/`waiting`/`rejected` (`shared/environments.ts:219`, `066_environment_approvals.sql:8`). Map: `accept` = accept/approved, `reject` = send_back/rejected, `abstain` = passed. |
-| `signoffs[].claim` | Partial. `review_event.status` (the stage left, `shared/review.ts:10`) or `approval_event.environment_id`; the claim is the stage, not a named claim. |
-| `signoffs[].subject` | Gap. `review_event` holds only the decision and stage (`shared/review.ts:10`) and `approval_event` the decision and environment (`shared/environments.ts:219`); neither records the head that was accepted. |
-| `signoffs[].evidence` | Gap. Decisions do not cite what they relied on. Project acceptance has free-text `evidence` (`project_acceptance`, `022_projects.sql:42-45`) at project level only. |
-| `signoffs[].at` | `issue_activity.created_at` (`003_issues.sql:72`). |
-| `signoffs[].note` | The comment that send back, hold and reject must post (`worker/mcp.ts:102-103`), stored as an ordinary comment. |
-
-### Audit events
-
-| v0 field | Hydrant today |
-|---|---|
-| `events[].seq` | `issue_activity.position` (`004_comments.sql:5`); `project_activity.position` (`022_projects.sql:36`); `playbook_event.version` (`021_playbook.sql:41`). |
-| `events[].at` | `issue_activity.created_at` (`003_issues.sql:72`). |
-| `events[].actor` | `issue_activity.actor_id`, an `auth_actor` (`011_agent_credentials.sql:47`). |
-| `events[].type` | Partial. `issue_activity.kind` plus its event columns (`review_event`, `approval_event`, `pull_request_event`, `comment_event`); the feed's `FeedRawEvent.kind` (`shared/activity-feed.ts:53`, `:65`). `agent.connected`, `grant.issued`, `grant.revoked`, `agent.revoked`: no issue history row; only `auth_actor.created_at`, `revoked_at` and `revoked_reason` (`011_agent_credentials.sql:21-22`, `112_connection_expiry.sql:8-9`). `claim.made`: gap. |
-| `events[].ref` | `issue_activity.issue_id`. |
-| `events[].claim` | Gap. |
-| `events[].note` | `before_status_name`/`after_status_name` (`006_workflow.sql:63-64`), `comment_body`. |
-
-Append-only today: `auth_actor` identity and revocation are permanent (trigger in `011_agent_credentials.sql:45`, extended in `112_connection_expiry.sql:10-19`), and Playbook events and task-context records are immutable (`021_playbook.sql:47`, `:61`). `issue_activity` is not strictly append-only: comment rows can be edited and resolved (`083_comment_edits.sql:4`, `016_comment_threads.sql:5`).
-
-Export today: `issue_activity`, `github_pull_request`, `attachment` and `agent_actor_link` are exported, but `auth_actor`, `issue_receipt` and `playbook_context` are withheld (`worker/workspace-export.ts:17-18`). Agents appear in `people.jsonl` by display name only (`worker/workspace-export.ts:181`). An export cannot rebuild who granted what.
-
-### Hydrant data deliberately left out of v0
-
-- **Planning fields:** priority, size, labels, rank, cycles, projects, milestones, dependencies, snooze. They describe how work is organized, not who allowed or accepted it.
-- **Release mechanics:** environments, promotions, clearance, flag keys, `held` and `behind_flag` decisions, dockets. They are about shipping batches; v0 stops at the `released` claim.
-- **Conversation:** comments, threads, reactions, follows, notifications. Only a decision's reason is kept, as `note`.
-- **"Looks right" acknowledgements** (`acknowledge_issue`, `worker/mcp.ts:346`). Hydrant itself says they are not a verdict.
-- **Task-context receipts** (`playbook_context`, `record_task_context`). They prove guidance was delivered, and `docs/playbook.md:11` says delivery does not prove understanding or compliance.
-- **Request receipts** (`issue_receipt`, `003_issues.sql:76`). Retry plumbing, not history.
-- **Credentials:** key hashes, tokens, auth.md registration codes. A record must be safe to share.
-- **GitHub automation outcomes and readiness internals** (probe revisions, mergeability). Evidence keeps the result and link only.
-- **Identity decoration:** avatars, icons, lanes, assignee descriptions. Plans, billing and analytics.
-
-### Reference implementation notes (#699)
-
-Hydrant assembles a record at read time from what it stores, and part of its evidence list is derived live from its sources (a pull request's current head, the current brief). So `seq` is the position at merge time: a fragment receipt's `seq` and `at` are as of the merge, and a later export may renumber. The export says v0.1 only when it keeps one of the [v0.1 additions](#v01-additions) (#710): a person who only moved the work or made a claim, an agent sign-off recorded without a grant, a rejection without its reason, or cited evidence no longer listed.
-
-## Gaps, filed as Reference implementation issues
-
-Filed on native Hydrant, all blocked by #681.
-
-1. **#693 Record agent grants as data, scoped to an issue and expiring on their own.** Ship grants are prose today; connections are workspace-wide and expiry is credential expiry.
-2. **#694 Record each agent's client and model.** Fills `client` and `model`.
-3. **#695 Typed evidence list on issues with stable ids.** Pull requests, CI runs, screenshots, briefs and test output with kind, claim, result, digest and `subject`.
-4. **#696 "Ready for review" and "done" as claim events,** not only stage moves.
-5. **#697 Decisions cite evidence and the accepted commit, with sign-off as its own agent permission.** Blocked by #693 and #695.
-6. **#698 Grant and connection start and end events in issue history.** Blocked by #693.
-7. **#699 Export one record per issue (MCP tool and CLI) and accept fragments.** Checked by `validate.mjs`. Blocked by #693, #695 and #697.
-8. **#700 Optional signed records** in an in-toto Statement and DSSE envelope. Blocked by #699.
-
-Publishing is #701 (page on hydrant.dev and the public repo); the first tool outside Hydrant is #702 (an open-source GitHub Action that emits evidence fragments from CI), blocked by #701.
-
-## Decisions
-
-Every question raised while drafting is decided. Henry approved the format and signing defaults and the name and URI, and delegated the rest.
-
-- **Name.** Agent Work Record (AWR). Reason: it says what it is and is not branded as any one vendor's.
-- **Format.** JSON with a JSON Schema (draft 2020-12). Reason: every language reads it, validators exist everywhere, and in-toto predicates are JSON.
-- **Signing.** Optional, using in-toto Statement v1 in DSSE. Reason: signing needs key management, which would break the afternoon-to-implement goal. Reusing in-toto means no new signature format when signing is wanted.
-- **Location and license.** Drafted in `docs/spec/` in this private repository. At Publish: Apache-2.0 for the text, schema and validator (its patent grant is what adopters' lawyers look for); the spec repository under the Background-Craft GitHub organization; a page on hydrant.dev; `agentworkrecord.org` redirects to that page and stays the stable identifier. Hosting with the vendor works when the spec needs nothing from the vendor to run, as WorkOS showed with auth.md.
-
-1. **Spec URI.** `https://agentworkrecord.org/v0` is the in-toto `predicateType` and `https://agentworkrecord.org/schema/v0.json` the schema `$id`. Identifiers only: nothing needs to be served there for a record to be valid. A neutral domain keeps the identifier stable whoever hosts the pages; registering it is a Publish task.
-2. **Hash chain.** Not in v0. Chaining events by hash needs RFC 8785 canonical JSON, and optional signing already covers tampering. Revisit in v0.1 if operators ask for it.
-3. **Record or stream.** The record stays the main document. A system that does not own the work sends a [fragment](#fragments) (one evidence item or one event), and the tracker merges it.
-4. **`excludes`.** Human-only text. Machine-checkable exclusions would turn into a policy language.
-5. **Evidence freshness.** Evidence and sign-off take an optional `subject` digest set. A sign-off with `subject` accepted that exact content, and a later push makes it stale.
-6. **Decisions.** Keep `accept`, `reject` and `abstain`. Hydrant's `held` and `behind_flag` are release mechanics, and URI-valued decisions would invite fragmentation.
-7. **CI.** Done: `scripts/check_backlog.py` runs `node docs/spec/validate.mjs`, so every CI tier that checks the docs checks the spec, without adding a workflow step.
-
-## Size check
-
-- **Record: 55 fields** across 9 object shapes: record 9, work 2, person 2, agent 5, grant 9, evidence 10, sign-off 9, event 7, digest set 2. 37 are always required. Three rules add one each in a case: `note` on a rejection, `claim` on `claim.made`, and at least one of `sha256` or `gitCommit` in a digest set.
-- **Fragment: 5 more fields** (`spec`, `workspace`, `work`, and one of `evidence` or `event`), reusing the evidence and event shapes (an event without `seq` or `at`, limited to two types). The schema file lists 68 property entries because the two fragment shapes and the fragment event repeat these.
-- **4 closed vocabularies:** 6 actions, 8 evidence kinds, 3 decisions, 8 event types; plus 3 claims and 4 results. Actions and claims accept URIs for anything else.
-- **6 record rules** and 7 merge rules, plus 3 for v0.1. The record rules are checked by a dependency-free script of 263 lines. v0.1 adds 3 optional fields (`people`, and `sign_off_grant` and `unlisted_evidence` on a sign-off) and 2 shapes (listed person, evidence snapshot). The [unchecked cases](#what-v0-does-not-check) are listed.
-- **No infrastructure:** no server, registry, database or key service. A record is one JSON file, and a fragment is a smaller one.
+[IMPLEMENTERS.md](../IMPLEMENTERS.md) lists every tool that writes or reads records, added by pull request. A tool belongs on the list when its output passes `node spec/validate.mjs`.
